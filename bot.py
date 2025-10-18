@@ -23,7 +23,7 @@ async def handle_greeting(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 def main():
     # ВСТАВЬТЕ СВОЙ ТОКЕН В КАВЫЧКИ
-    application = Application.builder().token("8331907092:AAHL03L_zTwTz8CIQ73NavIhixMMJlXOk1I").build()
+    application = Application.builder().token("ВАШ_ТОКЕН_ЗДЕСЬ").build()
     
     # Обработчик команды /start
     application.add_handler(CommandHandler("start", start))
