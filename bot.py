@@ -1,15 +1,32 @@
 import os
 import random
-from telegram import Update
-from telegram.ext import Application, CommandHandler, ContextTypes, MessageHandler, filters
+import asyncio
+from aiogram import Bot, Dispatcher, types
+from aiogram.filters import Command, Text
+from aiogram.types import Message
 
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("Привет! Желаю тебе прекрасного дня! 🌞")
+# Получаем токен из переменных окружения
+BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN')
 
-async def handle_thanks(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("Пожалуйста! 😊")
+# Создаем бота и диспетчер
+bot = Bot(token=BOT_TOKEN)
+dp = Dispatcher()
 
-async def handle_greeting(update: Update, context: ContextTypes.DEFAULT_TYPE):
+# Обработчик команды /start
+@dp.message(Command("start"))
+async def cmd_start(message: Message):
+    await message.answer("Привет! Желаю тебе прекрасного дня! 🌞")
+
+# Обработчик приветствий
+@dp.message(Text(
+    text=[
+        "привет", "здравствуй", "здравствуйте", "хай", "hello", "hi", 
+        "добрый день", "доброе утро", "добрый вечер", "ку", "салют", 
+        "прив", "здаров", "здарова", "хелло", "хэллоу"
+    ],
+    ignore_case=True
+))
+async def handle_greeting(message: Message):
     greetings = [
         "Привет! Хорошего дня! 🌞",
         "Здравствуй! Пусть день будет замечательным! ✨",
@@ -18,36 +35,23 @@ async def handle_greeting(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "Здорово! Хорошего тебе дня! 👍"
     ]
     greeting = random.choice(greetings)
-    await update.message.reply_text(greeting)
+    await message.answer(greeting)
 
-def main():
-    token = os.environ.get('TELEGRAM_BOT_TOKEN')
-    if not token:
-        print("Ошибка: TELEGRAM_BOT_TOKEN не установлен!")
-        return
-    
-    application = Application.builder().token(token).build()
-    
-    application.add_handler(CommandHandler("start", start))
-    
-    application.add_handler(MessageHandler(
-        filters.TEXT & (
-            filters.Regex(r"(?i)(привет|здравствуй|здравствуйте|хай|hello|hi|добрый день|доброе утро|добрый вечер)") |
-            filters.Regex(r"(?i)(ку|салют|прив|здаров|здарова|хелло|хэллоу)")
-        ), 
-        handle_greeting
-    ))
-    
-    application.add_handler(MessageHandler(
-        filters.TEXT & (
-            filters.Regex(r"(?i)(спасибо|благодарю|thanks|thank you)") |
-            filters.Regex(r"(?i)(пасиб|сябки|thx)")
-        ), 
-        handle_thanks
-    ))
-    
+# Обработчик благодарностей
+@dp.message(Text(
+    text=[
+        "спасибо", "благодарю", "thanks", "thank you", 
+        "пасиб", "сябки", "thx"
+    ],
+    ignore_case=True
+))
+async def handle_thanks(message: Message):
+    await message.answer("Пожалуйста! 😊")
+
+# Запуск бота
+async def main():
     print("Бот запущен на Render!")
-    application.run_polling()
+    await dp.start_polling(bot)
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
