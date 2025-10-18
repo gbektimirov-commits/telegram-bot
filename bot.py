@@ -1,5 +1,18 @@
 from telegram import Update
 from telegram.ext import Application, CommandHandler, ContextTypes, MessageHandler, filters
+from flask import Flask
+import threading
+import os
+
+# Веб-сервер для поддержания активности
+app = Flask('')
+
+@app.route('/')
+def home():
+    return "Бот работает! ✅"
+
+def run_web():
+    app.run(host='0.0.0.0', port=8080)
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Привет! Желаю тебе прекрасного дня! 🌞")
@@ -8,10 +21,9 @@ async def handle_thanks(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Пожалуйста! 😊")
 
 async def handle_greeting(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    # Список приветственных ответов для разнообразия
     greetings = [
         "Привет! Хорошего дня! 🌞",
-        "Здравствуй! Пусть день будет замечательным! ✨",
+        "Здравствуй! Пусть день будет замечательным! ✨", 
         "Приветствую! Желаю отличного настроения! 😊",
         "Привет! Пусть сегодняшний день принесет много радости! 🌈",
         "Здорово! Хорошего тебе дня! 👍"
@@ -21,14 +33,12 @@ async def handle_greeting(update: Update, context: ContextTypes.DEFAULT_TYPE):
     greeting = random.choice(greetings)
     await update.message.reply_text(greeting)
 
-def main():
-    # ВСТАВЬТЕ СВОЙ ТОКЕН В КАВЫЧКИ
-    application = Application.builder().token("ВАШ_ТОКЕН_ЗДЕСЬ").build()
+def run_bot():
+    # Токен берем из секретных переменных
+    token = os.environ['TELEGRAM_TOKEN']
+    application = Application.builder().token(token).build()
     
-    # Обработчик команды /start
     application.add_handler(CommandHandler("start", start))
-    
-    # Обработчик приветствий
     application.add_handler(MessageHandler(
         filters.TEXT & (
             filters.Regex(r"(?i)(привет|здравствуй|здравствуйте|хай|hello|hi|добрый день|доброе утро|добрый вечер)") |
@@ -36,8 +46,6 @@ def main():
         ), 
         handle_greeting
     ))
-    
-    # Обработчик благодарностей
     application.add_handler(MessageHandler(
         filters.TEXT & (
             filters.Regex(r"(?i)(спасибо|благодарю|thanks|thank you)") |
@@ -46,8 +54,11 @@ def main():
         handle_thanks
     ))
     
-    print("Бот запущен! Нажмите Ctrl+C чтобы остановить")
+    print("🤖 Бот запущен и работает 24/7!")
     application.run_polling()
 
 if __name__ == "__main__":
-    main()
+    # Запускаем веб-сервер в отдельном потоке
+    threading.Thread(target=run_web).start()
+    # Запускаем бота
+    run_bot()
