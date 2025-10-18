@@ -1,32 +1,14 @@
-import os
-import random
-import asyncio
-from aiogram import Bot, Dispatcher, types
-from aiogram.filters import Command, Text
-from aiogram.types import Message
+from telegram import Update
+from telegram.ext import Application, CommandHandler, ContextTypes, MessageHandler, filters
 
-# Получаем токен из переменных окружения
-BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN')
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text("Привет! Желаю тебе прекрасного дня! 🌞")
 
-# Создаем бота и диспетчер
-bot = Bot(token=BOT_TOKEN)
-dp = Dispatcher()
+async def handle_thanks(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text("Пожалуйста! 😊")
 
-# Обработчик команды /start
-@dp.message(Command("start"))
-async def cmd_start(message: Message):
-    await message.answer("Привет! Желаю тебе прекрасного дня! 🌞")
-
-# Обработчик приветствий
-@dp.message(Text(
-    text=[
-        "привет", "здравствуй", "здравствуйте", "хай", "hello", "hi", 
-        "добрый день", "доброе утро", "добрый вечер", "ку", "салют", 
-        "прив", "здаров", "здарова", "хелло", "хэллоу"
-    ],
-    ignore_case=True
-))
-async def handle_greeting(message: Message):
+async def handle_greeting(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    # Список приветственных ответов для разнообразия
     greetings = [
         "Привет! Хорошего дня! 🌞",
         "Здравствуй! Пусть день будет замечательным! ✨",
@@ -34,24 +16,38 @@ async def handle_greeting(message: Message):
         "Привет! Пусть сегодняшний день принесет много радости! 🌈",
         "Здорово! Хорошего тебе дня! 👍"
     ]
+    
+    import random
     greeting = random.choice(greetings)
-    await message.answer(greeting)
+    await update.message.reply_text(greeting)
 
-# Обработчик благодарностей
-@dp.message(Text(
-    text=[
-        "спасибо", "благодарю", "thanks", "thank you", 
-        "пасиб", "сябки", "thx"
-    ],
-    ignore_case=True
-))
-async def handle_thanks(message: Message):
-    await message.answer("Пожалуйста! 😊")
-
-# Запуск бота
-async def main():
-    print("Бот запущен на Render!")
-    await dp.start_polling(bot)
+def main():
+    # ВСТАВЬТЕ СВОЙ ТОКЕН В КАВЫЧКИ
+    application = Application.builder().token("8331907092:AAHL03L_zTwTz8CIQ73NavIhixMMJlXOk1I").build()
+    
+    # Обработчик команды /start
+    application.add_handler(CommandHandler("start", start))
+    
+    # Обработчик приветствий
+    application.add_handler(MessageHandler(
+        filters.TEXT & (
+            filters.Regex(r"(?i)(привет|здравствуй|здравствуйте|хай|hello|hi|добрый день|доброе утро|добрый вечер)") |
+            filters.Regex(r"(?i)(ку|салют|прив|здаров|здарова|хелло|хэллоу)")
+        ), 
+        handle_greeting
+    ))
+    
+    # Обработчик благодарностей
+    application.add_handler(MessageHandler(
+        filters.TEXT & (
+            filters.Regex(r"(?i)(спасибо|благодарю|thanks|thank you)") |
+            filters.Regex(r"(?i)(пасиб|сябки|thx)")
+        ), 
+        handle_thanks
+    ))
+    
+    print("Бот запущен! Нажмите Ctrl+C чтобы остановить")
+    application.run_polling()
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()
