@@ -1,3 +1,4 @@
+import os  # ← ДОБАВЬ ЭТУ СТРОКУ
 from telegram import Update
 from telegram.ext import Application, CommandHandler, ContextTypes, MessageHandler, filters
 
@@ -22,8 +23,11 @@ async def handle_greeting(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(greeting)
 
 def main():
-    # ВСТАВЬТЕ СВОЙ ТОКЕН В КАВЫЧКИ
-    application = Application.builder().token("8331907092:AAHL03L_zTwTz8CIQ73NavIhixMMJlXOk1I").build()
+    # ЗАМЕНИ ЭТУ СТРОКУ:
+    # application = Application.builder().token("8331907092:AAHL03L_zTwTz8CIQ73NavIhixMMJlXOk1I").build()
+    
+    # НА ЭТУ:
+    application = Application.builder().token(os.environ.get('TELEGRAM_BOT_TOKEN')).build()
     
     # Обработчик команды /start
     application.add_handler(CommandHandler("start", start))
