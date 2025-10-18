@@ -1,2 +1,2 @@
-[deploy]
-start = "python bot.py"
+python-telegram-bot==20.7
+Pillow>=9.0.0
